@@ -1,7 +1,7 @@
 import pyperclip
 import sys, os
 
-'''Takes GO func description from the clipboard and makes nice header with arguments and return values. Places this description into clipboard
+'''Takes GO func declaration from the clipboard and makes nice header with arguments and return values. Places this description into clipboard
 
 
 command line args:

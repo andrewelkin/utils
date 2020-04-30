@@ -6,7 +6,7 @@ Useful utils and scripts, mostly python
 # go_header
 
 
-Takes GO func description from the clipboard and makes nice header with arguments and return values. Places this description into clipboard
+Takes GO func declaration from the clipboard and makes nice header with arguments and return values. Places this description into clipboard
 
 ```
 command line args:
