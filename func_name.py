@@ -28,11 +28,11 @@ func (c *Controller) GetTransactionsPage(context *zaboutils.ExtendedContext, acc
 
 ## scans go files in the path tree and gets existing descriptions, so we don't need to enter it manually again.
 def scan_one_file(fname):
+    warns = 0
     with open(fname) as f:
 
         funcname = None
         count = 0
-        warns = 0
         line_number = 0
         for s in f:
             s = s.rstrip("\n")
