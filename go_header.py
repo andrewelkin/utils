@@ -176,7 +176,7 @@ def print_nice(name, args, retr):
 
     fstr = "// %%-%d.%ds %%-%d.%ds %%s\n" % (mlen, mlen, mlen2, mlen2)
 
-    ret += "// %s()\n" % name
+    ret += "// %s\n" % name
     ret += "// --> Input:\n"
     for a0, a1 in nargs:
         desc = idesc.get(a0 + a1, ".")
