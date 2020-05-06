@@ -34,3 +34,30 @@ will be processed like this:
 
 
 ```
+
+
+
+# func_name 
+
+
+
+Goes though all go files in the tree and looks for inconsistent usage of zaboutils.FuncName : - argument of it must be
+the same as the surrounding func name 
+
+command line args:
+-s:<path>               -   path to recursively scan *.go files 
+
+
+
+Working example:
+```
+func (c *Controller) GetTransactionsPage(context *zaboutils.ExtendedContext, account *zaboresources.Account, cursor *string) ([]*zaboresources.AccountTransactionRes, *string, bool, *echo.HTTPError) {
+
+...
+	c.logger.LogWithContextf(zaboutils.Severity.INFO, context, zaboutils.FuncName(c.GetBalance), "Next cursor is %v", sMarker)
+...
+}
+```
+
+-- this should issue a warning as GetTransactionsPage != GetBalance
+
