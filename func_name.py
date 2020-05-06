@@ -59,7 +59,7 @@ def scan_one_file(fname):
 
                 ndx = func.find("(")
                 if ndx < 0:
-                    print("DEBUG: no '(' in the line", func)
+                    print("DEBUG: no '(' in the line", func, fname)
                     return 0
 
                 func_name = func[:ndx].rstrip()
