@@ -98,7 +98,7 @@ def scan_one_file(fname):
                         print("%s:%d:%d Warning: function name: '%s' zaboutils.FuncName: '%s'" % (
                             fname, line_number, pos, func_name, zname))
 
-        return warns
+    return warns
 
 
 def scan_for_functions(rootDir):
