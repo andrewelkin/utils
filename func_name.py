@@ -31,7 +31,7 @@ def scan_one_file(fname):
     warns = 0
     with open(fname) as f:
 
-        funcname = None
+        func_name = None
         count = 0
         line_number = 0
         for s in f:
