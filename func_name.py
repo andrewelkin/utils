@@ -59,7 +59,8 @@ def scan_one_file(fname):
 
                 ndx = func.find("(")
                 if ndx < 0:
-                    return None
+                    print("DEBUG: no '(' in the line", func)
+                    return 0
 
                 func_name = func[:ndx].rstrip()
 
@@ -79,7 +80,7 @@ def scan_one_file(fname):
                     s = s[ndx:]
                     ndx = s.find("(")
 
-                    pos += ndx+1
+                    pos += ndx + 1
                     zname = s[ndx + 1:].lstrip().rstrip()
                     ndx = zname.find(")")
                     if ndx >= 0:
