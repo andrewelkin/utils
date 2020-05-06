@@ -93,6 +93,7 @@ def scan_one_file(fname):
 
                     # print("\t\tZname '%s'" % zname)
 
+
                     if zname != func_name:
                         warns += 1
                         print("%s:%d:%d Warning: function name: '%s' zaboutils.FuncName: '%s'" % (
