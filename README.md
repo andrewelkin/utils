@@ -61,3 +61,25 @@ func (c *Controller) GetTransactionsPage(context *zaboutils.ExtendedContext, acc
 
 -- this should issue a warning as GetTransactionsPage != GetBalance
 
+
+# cross_names
+
+
+Goes though all go files in the tree and looks for copy-paste dirt : 
+command line args:
+-s:<path>               -   path to recursively scan *.go files 
+
+
+
+Working example:
+
+in the zabo-api-provider-gemini/
+(and assuming there is a folder zabo-api-provider-bittrex/ 
+```
+func (c *Controller) GetTransactionsPage(context *zaboutils.ExtendedContext, account *zaboresources.Account, cursor *string) ([]*zaboresources.AccountTransactionRes, *string, bool, *echo.HTTPError) {
+...
+	c.logger.LogWithContextf(zaboutils.Severity.INFO, context, zaboutils.FuncName(c.GetBalance), "Next cursor is %v", "Bittrex")
+...
+}
+```
+-- this should issue a warning as the word bittrex is out of context

@@ -23,6 +23,8 @@ func (c *Controller) GetTransactionsPage(context *zaboutils.ExtendedContext, acc
 -- this should issue a warning as GetTransactionsPage != GetBalance
 
 
+Note: RateLimits() is excluded from checks
+
 '''
 
 
@@ -93,8 +95,7 @@ def scan_one_file(fname):
 
                     # print("\t\tZname '%s'" % zname)
 
-
-                    if zname != func_name:
+                    if zname != func_name and func_name != "RateLimits":
                         warns += 1
                         print("%s:%d:%d Warning: function name: '%s' zaboutils.FuncName: '%s'" % (
                             fname, line_number, pos, func_name, zname))
