@@ -28,7 +28,7 @@ Note: RateLimits() is excluded from checks
 '''
 
 
-## scans go files in the path tree and gets existing descriptions, so we don't need to enter it manually again.
+## scans go files in the path tree
 def scan_one_file(fname):
     warns = 0
     with open(fname) as f:
