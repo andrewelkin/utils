@@ -83,3 +83,34 @@ func (c *Controller) GetTransactionsPage(context *zaboutils.ExtendedContext, acc
 }
 ```
 -- this should issue a warning as the word bittrex is out of context
+
+
+
+# zabo logs
+
+
+zabo_logs retrieves all log entries for a request id
+
+usage:
+```
+python zabo_logs.py [-r] [-s:<severity level>]  <request id>
+
+-r reverses log entries to the natural order (older first)
+-s:<int>  minimal severity level: 1 - all including DEBUG(default), 2 - INFO and higher, 3 - WARNING and ERROR, 4 - ERROR and CRITICALs  
+```
+Example:
+```
+python zabo_logs.py -r -s:2  63052069-a61d-4bda-b756-2f6c81367607  > "63052069-a61d-4bda-b756-2f6c81367607.log"
+```
+
+it uses login/password and those are need to be placed in a file ~/.config/zabo_credentials:
+
+sample contents, two lines of text:
+```
+myusername
+mypassword
+``` 
+
+
+access token will be saved in "/tmp/zabo_bearer.txt"
+you can change this location in the global section below (if you feel it's not secure)
