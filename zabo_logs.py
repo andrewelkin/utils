@@ -89,7 +89,7 @@ def do_authenticate(url, login, password):
     print("Pre-authentication: %d" % resp.status_code)
 
     if resp.status_code != 200:
-        return False, None
+        return False, None, None
 
     headers = {
         "accept": "*/*",
@@ -207,7 +207,7 @@ def get_session_token(forced=False):
         with open(tokenf, 'w') as f:
             f.write(bearer)
 
-        print("Authenticated")
+        print("Authenticated OK")
 
     else:
         print("Using saved bearer token from ", tokenf, file=sys.stderr)
