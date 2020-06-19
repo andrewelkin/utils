@@ -14,7 +14,7 @@ usage:
 python zabo_logs.py [-r] [-s:<severity level>]  <request id>
 
 -r reverses log entries to the natural order (older first)
--s:<int>  minimal severity level: 1 - all including DEBUG(defualt), 2 - INFO and higher, 3 - WARNING and ERORR, 4 - ERROR and CRITICALs  
+-s:<int>  minimal severity level: 1 - all including DEBUG(default), 2 - INFO and higher, 3 - WARNING and ERROR, 4 - ERROR and CRITICALs  
 
 Example:
 python zabo_logs.py -r -s:2  63052069-a61d-4bda-b756-2f6c81367607  > "63052069-a61d-4bda-b756-2f6c81367607.log"
