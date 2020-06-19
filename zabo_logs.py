@@ -11,9 +11,13 @@ zabo_logs retrieves all log entries for a request id
 
 usage:
 
-zabo_logs [-r] <request id>
+python zabo_logs.py [-r] [-s:<severity level>]  <request id>
 
 -r reverses log entries to the natural order (older first)
+-s:<int>  minimal severity level: 1 - all including DEBUG(defualt), 2 - INFO and higher, 3 - WARNING and ERORR, 4 - ERROR and CRITICALs  
+
+Example:
+python zabo_logs.py -r -s:2  63052069-a61d-4bda-b756-2f6c81367607  > "63052069-a61d-4bda-b756-2f6c81367607.log"
 
 
 it uses login/password and those are need to be placed in a file ~/.config/zabo_credentials:
@@ -24,15 +28,16 @@ mypassword
 
 
 access token will be saved in "/tmp/zabo_bearer.txt"
-you can change this location in the global section below
+you can change this location in the global section below (if you feel it's not secure)
+
 
 '''
 
 #
-limit = 50  # Max number of log entries to get
+limit = 50  # Max number of log entries to get. it's a zabo.com limitation
 
 scene = "stage"  # Realm, i.e: 'stage'  or 'dev'
-env = "live"  # Environment: i.e. 'live' or 'sandbox'
+env = "live"     # Environment: i.e. 'live' or 'sandbox'
 
 # credenitals file, default  ~/.config/zabo_credentials
 credf = os.path.join(os.path.expanduser("~/.config"), "zabo_credentials")
@@ -41,7 +46,7 @@ credf = os.path.join(os.path.expanduser("~/.config"), "zabo_credentials")
 tokenf = "/tmp/zabo_bearer.txt"
 
 # url path to logs
-ref_base = "https://" + scene + "-api.zabo.com/admin-v0/" + env + "/logs"
+logs_url = "https://" + scene + "-api.zabo.com/admin-v0/" + env + "/logs"
 
 # Zabo login urls
 authenticate_url = "https://login.zabo.com/co/authenticate"
@@ -51,8 +56,14 @@ authorization_url = "https://login.zabo.com/authorize"
 auth0_client = "eyJuYW1lIjoiYXV0aDAuanMiLCJ2ZXJzaW9uIjoiOS4xMi4yIn0="
 auth0_client_id = "otCKt0GXtITJJKpr191RlSiQ3bi4kJsB"
 
-
 #########################################################################
+
+
+log_severity = {"DEBUG": 1,
+                "INFO": 2,
+                "WARNING": 3,
+                "ERROR": 4,
+                }
 
 
 def do_authenticate(url, login, password):
@@ -206,7 +217,7 @@ def get_session_token(forced=False):
 
 #########################################################################
 
-def request_log_entries(log_id, bearer, cursor=None):
+def request_log_entries(log_id, bearer, min_severitiy=1, cursor=None):
     if bearer is None:
         return [], 0, None, True
 
@@ -230,7 +241,7 @@ def request_log_entries(log_id, bearer, cursor=None):
     if cursor is not None:
         qparams['cursor'] = cursor
 
-    resp = requests.get(ref_base, headers=headers, params=qparams)
+    resp = requests.get(logs_url, headers=headers, params=qparams)
 
     tx = json.loads(resp.text)
 
@@ -259,6 +270,10 @@ def request_log_entries(log_id, bearer, cursor=None):
                 next_request_id = l2['id']
 
             t = l2['created_at']
+
+            ls = log_severity.get(l2['severity'], 5)
+            if ls < min_severitiy:
+                continue
             tstamp = time.strftime("%H:%M:%S", time.localtime(t // 1000))
             msecs = t % 1000
 
@@ -277,23 +292,28 @@ def request_log_entries(log_id, bearer, cursor=None):
 if __name__ == "__main__":
 
     res_reversed = False
+    min_severity = 1
     for g in sys.argv[1:]:
         if g.lower().startswith('/r') or g.lower().startswith('-r'):
             res_reversed = True
+        elif g.lower().startswith('/s:') or g.lower().startswith('-s:'):
+            min_severity = int(g[3:])
+
+
         else:
             log_id = g
 
     bearer = get_session_token(False)
 
     print("Retrieving log for request id ", log_id, file=sys.stderr)
+    print("Min log severity level %d" % min_severity, file=sys.stderr)
     cursor = None
 
     res = []
-    total = 0
     attempts_to_auhorize = 2
     while True:
 
-        r, t, cursor, need_authorize = request_log_entries(log_id, bearer, cursor)
+        r, t, cursor, need_authorize = request_log_entries(log_id, bearer, min_severity, cursor)
         if need_authorize:
             print("Requiring new authorization.. ", file=sys.stderr)
             attempts_to_auhorize -= 1
@@ -305,10 +325,9 @@ if __name__ == "__main__":
             continue
 
         res += r
-        if total == 0:
-            total = t
-        print("Total records retrieved: %d of %d, has more: %s" % (
-            len(res), total, "yes" if cursor is not None else "no"), file=sys.stderr)
+
+        print("Total records retrieved: %d, left to retrieve: %d, has more: %s" % (
+            len(res), t, "yes" if cursor is not None else "no"), file=sys.stderr)
 
         if cursor is None:
             break
