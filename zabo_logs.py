@@ -154,7 +154,7 @@ def do_authorization(url, ticket, cookies):
     }
 
     resp = requests.get(url, headers=headers, params=qparams, cookies=cookies)
-    print("%d" % resp.status_code)
+   # print("%d" % resp.status_code)
 
     tok = None
 
