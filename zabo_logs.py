@@ -37,7 +37,7 @@ you can change this location in the global section below (if you feel it's not s
 limit = 50  # Max number of log entries to get. it's a zabo.com limitation
 
 scene = "stage"  # Realm, i.e: 'stage'  or 'dev'
-env = "live"     # Environment: i.e. 'live' or 'sandbox'
+env = "live"  # Environment: i.e. 'live' or 'sandbox'
 
 # credenitals file, default  ~/.config/zabo_credentials
 credf = os.path.join(os.path.expanduser("~/.config"), "zabo_credentials")
@@ -49,12 +49,33 @@ tokenf = "/tmp/zabo_bearer.txt"
 logs_url = "https://" + scene + "-api.zabo.com/admin-v0/" + env + "/logs"
 
 # Zabo login urls
-authenticate_url = "https://login.zabo.com/co/authenticate"
-authorization_url = "https://login.zabo.com/authorize"
+
+authenticate_urls = {
+
+    "dev": "https://zabo-api-dev.auth0.com/co/authenticate",
+    "stage": "https://login.zabo.com/co/authenticate"
+}
+
+authorization_urls = {
+
+    "dev": "https://zabo-api-dev.auth0.com/authorize",
+    "stage": "https://login.zabo.com/authorize"
+
+}
+
+authenticate_url = authenticate_urls[scene]
+authorization_url = authorization_urls[scene]
+
 
 ## These are zabo Auth0 ids. They are not secret and they are visible when attempting to log in
-auth0_client = "eyJuYW1lIjoiYXV0aDAuanMiLCJ2ZXJzaW9uIjoiOS4xMi4yIn0="
-auth0_client_id = "otCKt0GXtITJJKpr191RlSiQ3bi4kJsB"
+auth0_client = "eyJuYW1lIjoiYXV0aDAuanMiLCJ2ZXJzaW9uIjoiOS4xMi4yIn0%3D"
+
+auth0_client_ids = {
+    "stage": "otCKt0GXtITJJKpr191RlSiQ3bi4kJsB",
+    "dev": "kYZX21csufu44b8x9MIOES0Hvk6QbH1Y"
+}
+
+auth0_client_id = auth0_client_ids[scene]
 
 #########################################################################
 
@@ -99,7 +120,12 @@ def do_authenticate(url, login, password):
         "Origin": "https://" + scene + "-admin.zabo.com",
         "Referer": "https://" + scene + "-admin.zabo.com/login",
         "cache-control": "no-cache",
-        "content-type": "application/json"
+        "content-type": "application/json",
+
+        "sec-fetch-dest": "empty",
+        "sec-fetch-mode": "cors",
+        "sec-fetch-site": "cross-site",
+
     }
 
     payload = {
@@ -108,6 +134,7 @@ def do_authenticate(url, login, password):
         "password": password,
         "realm": "Username-Password-Authentication",
         "credential_type": "http://auth0.com/oauth/grant-type/password-realm"
+
     }
 
     resp = requests.post(url, headers=headers, data=json.dumps(payload), cookies=resp.cookies)
@@ -137,6 +164,9 @@ def do_authorization(url, ticket, cookies):
         "Sec-Fetch-Mode": "navigate",
         "Sec-Fetch-Site": "same-site",
         "Sec-Fetch-User": "?1",
+#        "upgrade-insecure-requests": "1",
+        "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.97 Safari/537.36"
+
     }
 
     qparams = {
@@ -145,6 +175,8 @@ def do_authorization(url, ticket, cookies):
         "redirect_uri": "https://" + scene + "-admin.zabo.com/callback",
         "scope": "openid%20profile%20email",
         "audience": "https://zabo-api.auth0.com/api/v2/",
+#        "audience": "https%3A%2F%2Fzabo-api-dev.auth0.com%2Fapi%2Fv2%2F",
+
         "realm": "Username-Password-Authentication",
         "state": ''.join([str(random.randint(0, 9)) for i in range(16)]),
         "nonce": ''.join([str(random.randint(0, 9)) for i in range(16)]),
@@ -154,12 +186,13 @@ def do_authorization(url, ticket, cookies):
     }
 
     resp = requests.get(url, headers=headers, params=qparams, cookies=cookies)
-   # print("%d" % resp.status_code)
+    # print("%d" % resp.status_code)
 
     tok = None
 
     for h in resp.history:
         if h.status_code == 302:
+            print(h.headers)
             loc = h.headers.get("Location")
             if loc is not None:
                 ndx = loc.find("id_token=")
@@ -310,7 +343,7 @@ if __name__ == "__main__":
     cursor = None
 
     res = []
-    attempts_to_auhorize = 2
+    attempts_to_auhorize = 0
     while True:
 
         r, t, cursor, need_authorize = request_log_entries(log_id, bearer, min_severity, cursor)
