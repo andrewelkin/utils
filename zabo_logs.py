@@ -15,11 +15,13 @@ python zabo_logs.py [-r] [-s:<severity level>]  <request id>
 
 -r reverses log entries to the natural order (older first)
 -s:<int>  minimal severity level: 1 - all including DEBUG(default), 2 - INFO and higher, 3 - WARNING and ERROR, 4 - ERROR and CRITICALs  
+-b:<token>  - set bearer token directly.  
 
-Example:
+Example:what the fruit fruit 9
 python zabo_logs.py -r -s:2  63052069-a61d-4bda-b756-2f6c81367607  > "63052069-a61d-4bda-b756-2f6c81367607.log"
 
 
+if the bearer token is not set in the command line,
 it uses login/password and those are need to be placed in a file ~/.config/zabo_credentials:
 
 sample contents, two lines of text:
@@ -36,7 +38,7 @@ you can change this location in the global section below (if you feel it's not s
 #
 limit = 50  # Max number of log entries to get. it's a zabo.com limitation
 
-scene = "stage"  # Realm, i.e: 'stage'  or 'dev'
+scene = "prod"  # Realm, i.e: 'stage'  or 'dev' or 'prod'
 env = "live"  # Environment: i.e. 'live' or 'sandbox'
 
 # credenitals file, default  ~/.config/zabo_credentials
@@ -46,33 +48,36 @@ credf = os.path.join(os.path.expanduser("~/.config"), "zabo_credentials")
 tokenf = "/tmp/zabo_bearer.txt"
 
 # url path to logs
-logs_url = "https://" + scene + "-api.zabo.com/admin-v0/" + env + "/logs"
+logs_url = "https://" + ((scene + "-") if scene != "prod" else "") + "api.zabo.com/admin-v0/" + env + "/logs"
 
 # Zabo login urls
 
 authenticate_urls = {
 
     "dev": "https://zabo-api-dev.auth0.com/co/authenticate",
-    "stage": "https://login.zabo.com/co/authenticate"
+    "dev1": "https://login.zabo.com/co/authenticate",
+    "stage": "https://login.zabo.com/co/authenticate",
+    "prod": "https://login.zabo.com/co/authenticate"
 }
 
 authorization_urls = {
 
     "dev": "https://zabo-api-dev.auth0.com/authorize",
-    "stage": "https://login.zabo.com/authorize"
+    "stage": "https://login.zabo.com/authorize",
+    "prod": "https://login.zabo.com/authorize"
 
 }
 
 authenticate_url = authenticate_urls[scene]
 authorization_url = authorization_urls[scene]
 
-
 ## These are zabo Auth0 ids. They are not secret and they are visible when attempting to log in
-auth0_client = "eyJuYW1lIjoiYXV0aDAuanMiLCJ2ZXJzaW9uIjoiOS4xMi4yIn0%3D"
+auth0_client = "eyJuYW1lIjoiYXV0aDAuanMiLCJ2ZXJzaW9uIjoiOS4xMi4yIn0="
 
 auth0_client_ids = {
     "stage": "otCKt0GXtITJJKpr191RlSiQ3bi4kJsB",
-    "dev": "kYZX21csufu44b8x9MIOES0Hvk6QbH1Y"
+    "dev": "kYZX21csufu44b8x9MIOES0Hvk6QbH1Y",
+    "prod": "otCKt0GXtITJJKpr191RlSiQ3bi4kJsB",
 }
 
 auth0_client_id = auth0_client_ids[scene]
@@ -88,6 +93,11 @@ log_severity = {"DEBUG": 1,
 
 
 def do_authenticate(url, login, password):
+
+    if scene != "prod":
+        scene_ = scene + "-"
+    else:
+        scene_ = ""
     headers = {
         "Accept": "*/*",
         "Accept-Encoding": "gzip, deflate, br",
@@ -97,12 +107,12 @@ def do_authenticate(url, login, password):
         "Cache-Control": "no-cache",
         "Connection": "keep-alive",
         "Host": "login.zabo.com",
-        "Origin": "https://" + scene + "-admin.zabo.com",
+        "Origin": "https://" + scene_ + "admin.zabo.com",
         "Pragma": "no-cache",
-        "Referer": "https://" + scene + "-admin.zabo.com/login",
+        "Referer": "https://" + scene_ + "admin.zabo.com/login",
         "Sec-Fetch-Dest": "empty",
         "Sec-Fetch-Mode": "cors",
-        "Sec-Fetch-Site": "same-site",
+        "Sec-Fetch-Site": "cross-site",
         "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.97"
     }
 
@@ -117,8 +127,8 @@ def do_authenticate(url, login, password):
         "accept-encoding": "gzip,deflate,br",
         "accept-language": "en-US,en",
         "Auth0-Client": auth0_client,
-        "Origin": "https://" + scene + "-admin.zabo.com",
-        "Referer": "https://" + scene + "-admin.zabo.com/login",
+        "Origin": "https://" + scene_ + "admin.zabo.com",
+        "Referer": "https://" + scene_ + "admin.zabo.com/login",
         "cache-control": "no-cache",
         "content-type": "application/json",
 
@@ -150,11 +160,17 @@ def do_authenticate(url, login, password):
 
 
 def do_authorization(url, ticket, cookies):
+
+    if scene != "prod":
+        scene_ = scene + "-"
+    else:
+        scene_ = ""
+
     headers = {
         "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
         "accept-encoding": "gzip,deflate,br",
         "accept-language": "en-US,en",
-        "Referer": "https://" + scene + "-admin.zabo.com/login",
+        "Referer": "https://" + scene_ + "admin.zabo.com/login",
         "cache-control": "no-cache",
         "content-type": "application/json",
         "DNT": "1",
@@ -162,9 +178,9 @@ def do_authorization(url, ticket, cookies):
         "Pragma": "no-cache",
         "Sec-Fetch-Dest": "document",
         "Sec-Fetch-Mode": "navigate",
-        "Sec-Fetch-Site": "same-site",
+        "Sec-Fetch-Site": "cross-site",
         "Sec-Fetch-User": "?1",
-#        "upgrade-insecure-requests": "1",
+        #        "upgrade-insecure-requests": "1",
         "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.97 Safari/537.36"
 
     }
@@ -172,17 +188,14 @@ def do_authorization(url, ticket, cookies):
     qparams = {
         "client_id": auth0_client_id,
         "response_type": "token id_token",
-        "redirect_uri": "https://" + scene + "-admin.zabo.com/callback",
-        "scope": "openid%20profile%20email",
-        "audience": "https://zabo-api.auth0.com/api/v2/",
-#        "audience": "https%3A%2F%2Fzabo-api-dev.auth0.com%2Fapi%2Fv2%2F",
-
+        "redirect_uri": "https://" + scene_ + "admin.zabo.com/callback",
+        "scope": "openid profile",
         "realm": "Username-Password-Authentication",
-        "state": ''.join([str(random.randint(0, 9)) for i in range(16)]),
-        "nonce": ''.join([str(random.randint(0, 9)) for i in range(16)]),
+        "audience": "https://zabo-api.auth0.com/api/v2/",
+        "state": ''.join([str(random.randint(0, 9)) for i in range(24)]),
+        "nonce": ''.join([str(random.randint(0, 9)) for i in range(24)]),
         "login_ticket": ticket,
         "auth0Client": auth0_client
-
     }
 
     resp = requests.get(url, headers=headers, params=qparams, cookies=cookies)
@@ -192,7 +205,7 @@ def do_authorization(url, ticket, cookies):
 
     for h in resp.history:
         if h.status_code == 302:
-            print(h.headers)
+            # print(h.headers)
             loc = h.headers.get("Location")
             if loc is not None:
                 ndx = loc.find("id_token=")
@@ -326,24 +339,28 @@ if __name__ == "__main__":
 
     res_reversed = False
     min_severity = 1
+    bearer = None
     for g in sys.argv[1:]:
         if g.lower().startswith('/r') or g.lower().startswith('-r'):
             res_reversed = True
         elif g.lower().startswith('/s:') or g.lower().startswith('-s:'):
             min_severity = int(g[3:])
-
-
+        elif g.lower().startswith('/b:') or g.lower().startswith('-b:'):
+            bearer = int(g[3:])
         else:
             log_id = g
 
-    bearer = get_session_token(False)
+    if bearer is None:
+        bearer = get_session_token(False)
+    else:
+        print("Using bearer token from the command line")
 
     print("Retrieving log for request id ", log_id, file=sys.stderr)
     print("Min log severity level %d" % min_severity, file=sys.stderr)
     cursor = None
 
     res = []
-    attempts_to_auhorize = 0
+    attempts_to_auhorize = 2
     while True:
 
         r, t, cursor, need_authorize = request_log_entries(log_id, bearer, min_severity, cursor)
