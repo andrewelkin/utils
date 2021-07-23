@@ -142,7 +142,7 @@ def do_header(func):
     retr = args[ndx + 1:].lstrip()
     args = args[1:ndx]
 
-    if retr[0] == '(':
+    if len(retr)>0 and retr[0] == '(':
         ndx = find_matching(retr)
         retr = retr[1:]
         if ndx > 0:
