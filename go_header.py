@@ -120,7 +120,7 @@ def do_header(func):
     if ndx < 0:
         return None
     func = func[ndx + 4:].lstrip().rstrip()
-    ndx = func.find("{")
+    ndx = func.rfind("{")
     if ndx > 0:
         func = func[:ndx - 1]
 
@@ -142,7 +142,7 @@ def do_header(func):
     retr = args[ndx + 1:].lstrip()
     args = args[1:ndx]
 
-    if len(retr)>0 and retr[0] == '(':
+    if len(retr) > 0 and retr[0] == '(':
         ndx = find_matching(retr)
         retr = retr[1:]
         if ndx > 0:
